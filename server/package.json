@@ -4,8 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "dev": "node --watch index.js",
-    "dev:worker": "node --watch worker.js"
+    "dev": "node --watch index.js"
   },
   "keywords": [],
   "author": "",
@@ -16,7 +15,6 @@
     "@langchain/openai": "^0.5.5",
     "@langchain/qdrant": "^0.1.2",
     "@langchain/textsplitters": "^0.1.0",
-    "bullmq": "^5.49.0",
     "cors": "^2.8.5",
     "express": "4.x",
     "langchain": "^0.3.21",
