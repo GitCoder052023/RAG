@@ -1,4 +1,4 @@
-import { openaiClient } from '@/config/openai';
+import { model } from '@/config/google';
 import { getRetriever } from '@/services/vector-service';
 
 export const generateChatResponse = async (userQuery: string) => {
@@ -20,16 +20,13 @@ Follow these rules:
   ${JSON.stringify(relevantDocs)}
   `;
 
-  const chatResult = await openaiClient.chat.completions.create({
-    model: 'gpt-4o',
-    messages: [
-      { role: 'system', content: systemPrompt },
-      { role: 'user', content: userQuery },
-    ],
-  });
+  const aiMsg = await model.invoke([
+    ["system", systemPrompt],
+    ["human", userQuery],
+  ]);
 
   return {
-    message: chatResult.choices[0].message.content,
+    message: aiMsg.content,
     docs: relevantDocs,
   };
 };

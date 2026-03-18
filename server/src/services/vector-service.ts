@@ -1,5 +1,5 @@
 import { QdrantVectorStore } from '@langchain/qdrant';
-import { embeddings } from '@/config/openai';
+import { embeddings } from '@/config/google';
 import { qdrantConfig } from '@/config/qdrant';
 import { Document } from '@langchain/core/documents';
 

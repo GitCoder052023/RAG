@@ -8,15 +8,18 @@ importers:
 
   .:
     dependencies:
+      '@google/generative-ai':
+        specifier: ^0.24.1
+        version: 0.24.1
       '@langchain/community':
         specifier: ^1.1.24
         version: 1.1.24(@browserbasehq/sdk@2.9.0)(@browserbasehq/stagehand@1.14.0(@playwright/test@1.58.2)(deepmerge@4.3.1)(dotenv@17.3.1)(openai@6.32.0(ws@8.19.0)(zod@4.3.6))(zod@4.3.6))(@ibm-cloud/watsonx-ai@1.7.9)(@langchain/core@1.1.33(openai@6.32.0(ws@8.19.0)(zod@4.3.6))(ws@8.19.0))(ibm-cloud-sdk-core@5.4.9)(jsonwebtoken@9.0.3)(openai@6.32.0(ws@8.19.0)(zod@4.3.6))(pdf-parse@2.4.5)(playwright@1.58.2)(ws@8.19.0)
       '@langchain/core':
         specifier: ^1.1.33
         version: 1.1.33(openai@6.32.0(ws@8.19.0)(zod@4.3.6))(ws@8.19.0)
-      '@langchain/openai':
-        specifier: ^1.3.0
-        version: 1.3.0(@langchain/core@1.1.33(openai@6.32.0(ws@8.19.0)(zod@4.3.6))(ws@8.19.0))(ws@8.19.0)
+      '@langchain/google-genai':
+        specifier: ^2.1.26
+        version: 2.1.26(@langchain/core@1.1.33(openai@6.32.0(ws@8.19.0)(zod@4.3.6))(ws@8.19.0))
       '@langchain/qdrant':
         specifier: ^1.0.1
         version: 1.0.1(@langchain/core@1.1.33(openai@6.32.0(ws@8.19.0)(zod@4.3.6))(ws@8.19.0))(typescript@5.9.3)
@@ -38,9 +41,6 @@ importers:
       multer:
         specifier: 2.1.1
         version: 2.1.1
-      openai:
-        specifier: ^6.32.0
-        version: 6.32.0(ws@8.19.0)(zod@4.3.6)
       pdf-parse:
         specifier: ^2.4.5
         version: 2.4.5
@@ -252,6 +252,10 @@ packages:
     engines: {node: '>=18'}
     cpu: [x64]
     os: [win32]
+
+  '@google/generative-ai@0.24.1':
+    resolution: {integrity: sha512-MqO+MLfM6kjxcKoy0p1wRzG3b4ZZXtPI+z2IE26UogS2Cm/XHO+7gGRBh6gcJsOiIVoH93UwKvW4HdgiOZCy9Q==}
+    engines: {node: '>=18.0.0'}
 
   '@ibm-cloud/watsonx-ai@1.7.9':
     resolution: {integrity: sha512-farwTW1ffFt3NVvqZQIcd0VBKByLK6ctnfn4XM7Rf9Mf5JJbNwVPV1Wll046E/MlKAaZEM6sFDGAh+JCnnmqyQ==}
@@ -651,6 +655,12 @@ packages:
   '@langchain/core@1.1.33':
     resolution: {integrity: sha512-At1ooBmPlHMkhTkG6NqeOVjNscuJwneBB8F88rFRvBvIfhTACVLzEwMiZFWNTM8DzUXUOcxxqS7xKRyr6JBbOQ==}
     engines: {node: '>=20'}
+
+  '@langchain/google-genai@2.1.26':
+    resolution: {integrity: sha512-202ZBVEIXxKhNbDzktLKSffb9pNfrYBGPV7j54nvAR0uqfoh5reRlX8wmOZEDflojvX/GHc69jTOsc0eZKgRsA==}
+    engines: {node: '>=20'}
+    peerDependencies:
+      '@langchain/core': ^1.1.33
 
   '@langchain/langgraph-checkpoint@1.0.1':
     resolution: {integrity: sha512-HM0cJLRpIsSlWBQ/xuDC67l52SqZ62Bh2Y61DX+Xorqwoh5e1KxYvfCD7GnSTbWWhjBOutvnR0vPhu4orFkZfw==}
@@ -1902,6 +1912,8 @@ snapshots:
   '@esbuild/win32-x64@0.27.4':
     optional: true
 
+  '@google/generative-ai@0.24.1': {}
+
   '@ibm-cloud/watsonx-ai@1.7.9':
     dependencies:
       '@types/node': 18.19.130
@@ -1988,6 +2000,12 @@ snapshots:
       - '@opentelemetry/sdk-trace-base'
       - openai
       - ws
+
+  '@langchain/google-genai@2.1.26(@langchain/core@1.1.33(openai@6.32.0(ws@8.19.0)(zod@4.3.6))(ws@8.19.0))':
+    dependencies:
+      '@google/generative-ai': 0.24.1
+      '@langchain/core': 1.1.33(openai@6.32.0(ws@8.19.0)(zod@4.3.6))(ws@8.19.0)
+      uuid: 11.1.0
 
   '@langchain/langgraph-checkpoint@1.0.1(@langchain/core@1.1.33(openai@6.32.0(ws@8.19.0)(zod@4.3.6))(ws@8.19.0))':
     dependencies:
