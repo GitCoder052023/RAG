@@ -1,8 +1,9 @@
-import { generateChatResponse } from '../services/chat-service.js';
+import { Request, Response } from 'express';
+import { generateChatResponse } from '@/services/chat-service';
 
-export const chatWithPDF = async (req, res) => {
+export const chatWithPDF = async (req: Request, res: Response) => {
   try {
-    const userQuery = req.query.message;
+    const userQuery = req.query.message as string;
     if (!userQuery) {
       return res.status(400).json({ error: 'Message query parameter is required' });
     }

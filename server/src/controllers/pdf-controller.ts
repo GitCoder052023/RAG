@@ -1,7 +1,8 @@
-import { loadPDF } from '../services/pdf-service.js';
-import { addDocumentsToStore } from '../services/vector-service.js';
+import { Request, Response } from 'express';
+import { loadPDF } from '@/services/pdf-service';
+import { addDocumentsToStore } from '@/services/vector-service';
 
-export const uploadPDF = async (req, res) => {
+export const uploadPDF = async (req: Request, res: Response) => {
   try {
     if (!req.file) {
       return res.status(400).json({ error: 'No file uploaded' });
