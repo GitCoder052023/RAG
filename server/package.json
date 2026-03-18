@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
+  "type": "module",
   "scripts": {
     "dev": "node --watch index.js"
   },
@@ -16,6 +17,7 @@
     "@langchain/qdrant": "^0.1.2",
     "@langchain/textsplitters": "^0.1.0",
     "cors": "^2.8.5",
+    "dotenv": "^17.3.1",
     "express": "4.x",
     "langchain": "^0.3.21",
     "multer": "1.4.5-lts.2",
