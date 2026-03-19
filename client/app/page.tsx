@@ -2,7 +2,6 @@
 
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Navbar } from '@/components/navbar';
 import { UploadPanel } from '@/components/upload-panel';
 import { ChatPanel } from '@/components/chat-panel';
 import { Toaster } from '@/components/ui/sonner';
@@ -25,7 +24,6 @@ export default function Home() {
       </div>
 
       <div className="relative z-10 flex flex-col h-screen">
-        <Navbar />
         
         <div className="flex flex-1 overflow-hidden p-4 gap-4 max-w-[1600px] mx-auto w-full">
           {/* Left Sidebar - Hidden on mobile, controlled by button */}

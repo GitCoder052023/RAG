@@ -11,6 +11,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { chatWithPDF } from '@/lib/api';
 import ReactMarkdown from 'react-markdown';
+import { ModeToggle } from '@/components/mode-toggle';
 
 import {
   Dialog,
@@ -106,10 +107,13 @@ export const ChatPanel = () => {
             Ask anything about your document
           </CardDescription>
         </div>
-        <Button variant="outline" size="sm" className="hidden sm:flex items-center gap-2">
-          <Info className="size-4" />
-          Sources
-        </Button>
+        <div className="flex items-center gap-2">
+          <ModeToggle />
+          <Button variant="outline" size="sm" className="hidden sm:flex items-center gap-2">
+            <Info className="size-4" />
+            Sources
+          </Button>
+        </div>
       </CardHeader>
 
       <CardContent className="flex-1 p-0 overflow-hidden relative">
