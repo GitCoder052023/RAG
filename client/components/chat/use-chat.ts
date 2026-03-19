@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { chatWithPDF } from '@/lib/api';
+import { chatWithPDFStream } from '@/lib/api';
 import { toast } from 'sonner';
 import { Message } from './types';
 
@@ -40,7 +40,7 @@ export const useChat = (hasUploadedFiles: boolean) => {
     scrollToBottom();
   }, [messages]);
 
-  const handleSendMessage = async () => {
+  const handleSendMessage = () => {
     if (!input.trim() || isLoading || !hasUploadedFiles) return;
 
     const userMessage: Message = {
@@ -49,30 +49,72 @@ export const useChat = (hasUploadedFiles: boolean) => {
       content: input,
     };
 
+    const botMessageId = (Date.now() + 1).toString();
+
     setMessages((prev) => [...prev, userMessage]);
     setInput('');
     setIsLoading(true);
 
-    try {
-      const response = await chatWithPDF(input);
-      const botMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        role: 'bot',
-        content: response.message,
-        docs: response.docs,
-      };
-      setMessages((prev) => [...prev, botMessage]);
-    } catch (error) {
-      console.error(error);
-      const errorMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        role: 'bot',
-        content: 'Sorry, I encountered an error. Please try again.',
-      };
-      setMessages((prev) => [...prev, errorMessage]);
-    } finally {
-      setIsLoading(false);
-    }
+    let isBotMessageAdded = false;
+
+    const addBotMessageIfNeeded = () => {
+      if (!isBotMessageAdded) {
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: botMessageId,
+            role: 'bot',
+            content: '',
+          },
+        ]);
+        isBotMessageAdded = true;
+      }
+    };
+
+    chatWithPDFStream(
+      input,
+      (docs) => {
+        addBotMessageIfNeeded();
+        setMessages((prev) =>
+          prev.map((msg) =>
+            msg.id === botMessageId ? { ...msg, docs } : msg
+          )
+        );
+      },
+      (chunk) => {
+        addBotMessageIfNeeded();
+        setMessages((prev) =>
+          prev.map((msg) =>
+            msg.id === botMessageId ? { ...msg, content: msg.content + chunk } : msg
+          )
+        );
+      },
+      () => {
+        setIsLoading(false);
+      },
+      (error) => {
+        console.error(error);
+        if (!isBotMessageAdded) {
+          addBotMessageIfNeeded();
+          setMessages((prev) =>
+            prev.map((msg) =>
+              msg.id === botMessageId
+                ? { ...msg, content: 'Sorry, I encountered an error. Please try again.' }
+                : msg
+            )
+          );
+        } else {
+          setMessages((prev) =>
+            prev.map((msg) =>
+              msg.id === botMessageId
+                ? { ...msg, content: msg.content === '' ? 'Sorry, I encountered an error. Please try again.' : msg.content + '\n\n*(Error: Stream interrupted)*' }
+                : msg
+            )
+          );
+        }
+        setIsLoading(false);
+      }
+    );
   };
 
   return {

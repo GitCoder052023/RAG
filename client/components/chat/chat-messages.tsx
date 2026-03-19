@@ -19,20 +19,28 @@ export const ChatMessages: React.FC<ChatMessagesProps> = ({
   onSelectDoc, 
   scrollAreaRef 
 }) => {
+  const showLoading = isLoading && messages[messages.length - 1]?.role === 'user';
+
   return (
     <ScrollArea ref={scrollAreaRef} className="h-full px-6 py-4">
       <div className="flex flex-col gap-6 max-w-4xl mx-auto pb-10">
         <AnimatePresence initial={false}>
-          {messages.map((message) => (
-            <MessageItem 
-              key={message.id} 
-              message={message} 
-              onSelectDoc={onSelectDoc} 
-            />
-          ))}
+          {messages.map((message, index) => {
+            const isLastMessage = index === messages.length - 1;
+            const isStreaming = isLoading && isLastMessage && message.role === 'bot';
+
+            return (
+              <MessageItem 
+                key={message.id} 
+                message={message} 
+                isStreaming={isStreaming}
+                onSelectDoc={onSelectDoc} 
+              />
+            );
+          })}
         </AnimatePresence>
         
-        {isLoading && <LoadingMessage />}
+        {showLoading && <LoadingMessage />}
       </div>
     </ScrollArea>
   );
