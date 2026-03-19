@@ -151,15 +151,17 @@ export const ChatPanel = () => {
                         <span className="text-[10px] uppercase font-bold text-muted-foreground tracking-wider mb-1 block w-full">References</span>
                         {message.docs.map((doc, i) => (
                           <Tooltip key={i}>
-                            <TooltipTrigger asChild>
-                              <Button 
-                                variant="outline" 
-                                size="sm" 
-                                className="h-7 px-2.5 text-[11px] font-semibold border-primary/20 bg-primary/5 text-primary hover:bg-primary/10 hover:text-primary rounded-lg transition-all"
-                                onClick={() => setSelectedDocs(message.docs || [])}
-                              >
-                                Source {i + 1}
-                              </Button>
+                            <TooltipTrigger
+                              render={
+                                <Button 
+                                  variant="outline" 
+                                  size="sm" 
+                                  className="h-7 px-2.5 text-[11px] font-semibold border-primary/20 bg-primary/5 text-primary hover:bg-primary/10 hover:text-primary rounded-lg transition-all"
+                                  onClick={() => setSelectedDocs(message.docs || [])}
+                                />
+                              }
+                            >
+                              Source {i + 1}
                             </TooltipTrigger>
                             <TooltipContent>
                               <p>View context from source {i + 1}</p>
