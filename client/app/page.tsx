@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { UploadPanel } from '@/components/upload-panel';
-import { ChatPanel } from '@/components/chat-panel';
+import { ChatPanel } from '@/components/chat';
 import { Toaster } from '@/components/ui/sonner';
 import { Files, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';

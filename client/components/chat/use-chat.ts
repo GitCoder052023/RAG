@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { chatWithPDFStream } from '@/lib/api';
+import { chatWithDocument } from '@/lib/api';
 import { toast } from 'sonner';
 import { Message } from './types';
 
@@ -71,7 +71,7 @@ export const useChat = (hasUploadedFiles: boolean) => {
       }
     };
 
-    chatWithPDFStream(
+    chatWithDocument(
       input,
       (docs) => {
         addBotMessageIfNeeded();

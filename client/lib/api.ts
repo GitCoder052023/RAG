@@ -6,10 +6,10 @@ export const api = axios.create({
   baseURL: API_BASE_URL,
 });
 
-export const uploadPDF = async (file: File) => {
+export const uploadDocument = async (file: File) => {
   const formData = new FormData();
   formData.append('pdf', file);
-  const response = await api.post('/upload/pdf', formData, {
+  const response = await api.post('/api/docs/upload', formData, {
     headers: {
       'Content-Type': 'multipart/form-data',
     },
@@ -17,21 +17,14 @@ export const uploadPDF = async (file: File) => {
   return response.data;
 };
 
-export const chatWithPDF = async (message: string) => {
-  const response = await api.get('/chat', {
-    params: { message },
-  });
-  return response.data;
-};
-
-export const chatWithPDFStream = (
+export const chatWithDocument = (
   message: string,
   onDocs: (docs: any[]) => void,
   onChunk: (chunk: string) => void,
   onDone: () => void,
   onError: (err: any) => void
 ) => {
-  const url = `${API_BASE_URL}/chat/stream?message=${encodeURIComponent(message)}`;
+  const url = `${API_BASE_URL}/api/chat/stream?message=${encodeURIComponent(message)}`;
   const eventSource = new EventSource(url);
 
   eventSource.onmessage = (event) => {

@@ -7,7 +7,7 @@ import { CloudUpload, FileText, CheckCircle2, Loader2, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { toast } from 'sonner';
-import { uploadPDF } from '@/lib/api';
+import { uploadDocument } from '@/lib/api';
 
 interface UploadPanelProps {
   onUploadSuccess: (file: File) => void;
@@ -35,7 +35,7 @@ export const UploadPanel: React.FC<UploadPanelProps> = ({ onUploadSuccess, uploa
 
     setIsUploading(true);
     try {
-      await uploadPDF(file);
+      await uploadDocument(file);
       toast.success('File uploaded successfully!');
       onUploadSuccess(file);
       setFile(null);
