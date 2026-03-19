@@ -10,9 +10,10 @@ import { Button } from '@/components/ui/button';
 
 export default function Home() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
 
-  const onUploadSuccess = () => {
-    // Optional: add any logic after successful upload
+  const onUploadSuccess = (file: File) => {
+    setUploadedFiles((prev) => [...prev, file]);
   };
 
   return (
@@ -36,7 +37,10 @@ export default function Home() {
                 transition={{ duration: 0.3, ease: 'easeInOut' }}
                 className="hidden lg:block h-full shrink-0 overflow-hidden"
               >
-                <UploadPanel onUploadSuccess={onUploadSuccess} />
+                <UploadPanel 
+                  onUploadSuccess={onUploadSuccess} 
+                  uploadedFiles={uploadedFiles}
+                />
               </motion.div>
             )}
           </AnimatePresence>
@@ -65,7 +69,7 @@ export default function Home() {
               </Button>
             </div>
 
-            <ChatPanel />
+            <ChatPanel hasUploadedFiles={uploadedFiles.length > 0} />
           </div>
         </div>
       </div>

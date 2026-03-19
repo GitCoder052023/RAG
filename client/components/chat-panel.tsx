@@ -2,7 +2,7 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Send, User, Bot, Loader2, Info, ChevronRight, Files } from 'lucide-react';
+import { Send, Bot, Loader2, ChevronRight, Copy, Check, Hash, Bookmark } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -12,18 +12,16 @@ import { Badge } from '@/components/ui/badge';
 import { chatWithPDF } from '@/lib/api';
 import ReactMarkdown from 'react-markdown';
 import { ModeToggle } from '@/components/mode-toggle';
+import { toast } from 'sonner';
 
 import {
   Dialog,
   DialogContent,
-  DialogHeader,
   DialogTitle,
-  DialogDescription,
 } from "@/components/ui/dialog";
 import {
   Tooltip,
   TooltipContent,
-  TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 
@@ -34,7 +32,11 @@ interface Message {
   docs?: any[];
 }
 
-export const ChatPanel = () => {
+interface ChatPanelProps {
+  hasUploadedFiles: boolean;
+}
+
+export const ChatPanel: React.FC<ChatPanelProps> = ({ hasUploadedFiles }) => {
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
@@ -45,7 +47,16 @@ export const ChatPanel = () => {
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [selectedDocs, setSelectedDocs] = useState<any[] | null>(null);
+  const [activeDocIndex, setActiveDocIndex] = useState(0);
+  const [copied, setCopied] = useState(false);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
+
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text);
+    setCopied(true);
+    toast.success('Snippet copied to clipboard');
+    setTimeout(() => setCopied(false), 2000);
+  };
 
   const scrollToBottom = () => {
     if (scrollAreaRef.current) {
@@ -109,10 +120,6 @@ export const ChatPanel = () => {
         </div>
         <div className="flex items-center gap-2">
           <ModeToggle />
-          <Button variant="outline" size="sm" className="hidden sm:flex items-center gap-2">
-            <Info className="size-4" />
-            Sources
-          </Button>
         </div>
       </CardHeader>
 
@@ -157,7 +164,10 @@ export const ChatPanel = () => {
                                   variant="outline" 
                                   size="sm" 
                                   className="h-7 px-2.5 text-[11px] font-semibold border-primary/20 bg-primary/5 text-primary hover:bg-primary/10 hover:text-primary rounded-lg transition-all"
-                                  onClick={() => setSelectedDocs(message.docs || [])}
+                                  onClick={() => {
+                                    setSelectedDocs(message.docs || []);
+                                    setActiveDocIndex(i);
+                                  }}
                                 />
                               }
                             >
@@ -211,21 +221,23 @@ export const ChatPanel = () => {
         >
           <div className="relative flex-1 group">
             <Input
-              placeholder="Ask a question about your document..."
+              placeholder={hasUploadedFiles ? "Ask a question about your document..." : "Please upload a document to start chatting"}
               value={input}
               onChange={(e) => setInput(e.target.value)}
               className="pr-12 py-6 rounded-2xl bg-muted/30 border-muted-foreground/20 focus-visible:ring-primary focus-visible:border-primary transition-all duration-300"
-              disabled={isLoading}
+              disabled={isLoading || !hasUploadedFiles}
             />
             <div className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center gap-2">
-              <span className="text-[10px] font-bold text-muted-foreground/50 border border-muted-foreground/20 px-1.5 py-0.5 rounded uppercase pointer-events-none hidden sm:inline-block">Enter</span>
+              {hasUploadedFiles && (
+                <span className="text-[10px] font-bold text-muted-foreground/50 border border-muted-foreground/20 px-1.5 py-0.5 rounded uppercase pointer-events-none hidden sm:inline-block">Enter</span>
+              )}
             </div>
           </div>
           <Button 
             type="submit" 
             size="icon" 
             className="size-12 rounded-2xl shadow-lg shadow-primary/20 shrink-0 transition-transform active:scale-95"
-            disabled={!input.trim() || isLoading}
+            disabled={!input.trim() || isLoading || !hasUploadedFiles}
           >
             <Send className="size-5" />
           </Button>
@@ -233,54 +245,128 @@ export const ChatPanel = () => {
       </CardFooter>
 
       {/* Source Viewer Dialog */}
-      <Dialog open={!!selectedDocs} onOpenChange={(open) => !open && setSelectedDocs(null)}>
-        <DialogContent className="max-w-2xl max-h-[80vh] flex flex-col p-0 overflow-hidden border-none shadow-2xl">
-          <DialogHeader className="p-6 bg-primary text-primary-foreground border-b border-primary-foreground/10">
-            <div className="flex items-center gap-3">
-              <div className="size-10 rounded-xl bg-white/20 backdrop-blur-md flex items-center justify-center">
-                <Files className="size-6 text-white" />
+      <Dialog 
+        open={!!selectedDocs} 
+        onOpenChange={(open) => {
+          if (!open) {
+            setSelectedDocs(null);
+            setActiveDocIndex(0);
+          }
+        }}
+      >
+        <DialogContent className="sm:max-w-5xl w-[95vw] max-h-[85vh] p-0 gap-0 overflow-hidden border-none shadow-2xl bg-background/95 backdrop-blur-md flex flex-col">
+          <DialogTitle className="sr-only">Source Context Viewer</DialogTitle>
+          <div className="flex h-full min-h-[500px] w-full overflow-hidden">
+            {/* Sidebar with Snippet Selection */}
+            <div className="w-[260px] border-r border-border/50 bg-muted/20 flex flex-col shrink-0 hidden sm:flex">
+              <div className="p-6 border-b border-border/50">
+                <div className="flex items-center gap-2 mb-1">
+                  <div className="size-8 rounded-lg bg-primary flex items-center justify-center">
+                    <Bookmark className="size-4 text-primary-foreground" />
+                  </div>
+                  <h3 className="font-bold text-lg tracking-tight">Sources</h3>
+                </div>
+                <p className="text-xs text-muted-foreground font-medium">
+                  {selectedDocs?.length || 0} snippets referenced
+                </p>
               </div>
-              <div>
-                <DialogTitle className="text-xl font-bold">Referenced Context</DialogTitle>
-                <DialogDescription className="text-primary-foreground/80 font-medium">
-                  Sources used to generate this response
-                </DialogDescription>
+              
+              <div className="flex-1 overflow-y-auto custom-scrollbar">
+                <div className="p-3 flex flex-col gap-2">
+                  {selectedDocs?.map((doc, i) => (
+                    <button
+                      key={i}
+                      onClick={() => setActiveDocIndex(i)}
+                      className={`w-full text-left p-4 rounded-xl transition-all duration-300 group relative overflow-hidden
+                        ${activeDocIndex === i 
+                          ? 'bg-card shadow-sm border border-border/50 translate-x-1' 
+                          : 'hover:bg-muted/50 border border-transparent opacity-70 hover:opacity-100'}`}
+                    >
+                      {activeDocIndex === i && (
+                        <motion.div 
+                          layoutId="activeSnippet"
+                          className="absolute left-0 top-0 bottom-0 w-1 bg-primary"
+                        />
+                      )}
+                      <div className="flex flex-col gap-1.5 relative z-10">
+                        <div className="flex items-center justify-between">
+                          <span className={`text-[10px] font-bold uppercase tracking-wider
+                            ${activeDocIndex === i ? 'text-primary' : 'text-muted-foreground'}`}>
+                            Snippet {i + 1}
+                          </span>
+                          {doc.metadata?.page && (
+                            <span className="text-[10px] font-medium text-muted-foreground">
+                              Page {doc.metadata.page}
+                            </span>
+                          )}
+                        </div>
+                        <p className={`text-xs font-medium line-clamp-2 leading-relaxed
+                          ${activeDocIndex === i ? 'text-foreground' : 'text-muted-foreground'}`}>
+                          {doc.pageContent || doc.content || "Source snippet content..."}
+                        </p>
+                      </div>
+                    </button>
+                  ))}
+                </div>
               </div>
             </div>
-          </DialogHeader>
-          <ScrollArea className="flex-1 p-6 bg-muted/30">
-            <div className="flex flex-col gap-6">
-              {selectedDocs?.map((doc, i) => (
-                <motion.div 
-                  key={i} 
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: i * 0.1 }}
-                  className="bg-card p-5 rounded-2xl border border-border/50 shadow-sm relative overflow-hidden group hover:border-primary/30 transition-all duration-300"
-                >
-                  <div className="absolute top-0 right-0 p-3 flex items-center gap-2">
-                    <Badge variant="secondary" className="bg-primary/5 text-primary border-primary/10">Snippet {i + 1}</Badge>
-                  </div>
-                  <h4 className="font-bold text-sm mb-3 flex items-center gap-2 text-primary/80">
-                    <Info className="size-4" />
-                    Source Snippet
-                  </h4>
-                  <div className="text-sm text-foreground leading-relaxed whitespace-pre-wrap font-medium">
-                    {doc.pageContent || doc.content || "No snippet content available"}
-                  </div>
-                  {doc.metadata && (
-                    <div className="mt-4 pt-4 border-t border-border/30 flex flex-wrap gap-2">
-                      {Object.entries(doc.metadata).map(([key, value]: [string, any]) => (
-                        <Badge key={key} variant="outline" className="text-[10px] font-bold py-0.5 bg-muted/50">
-                          {key}: {String(value)}
-                        </Badge>
-                      ))}
+
+            {/* Content Area */}
+            <div className="flex-1 flex flex-col min-w-0 bg-background relative">
+              {/* Subtle background texture */}
+              <div className="absolute inset-0 opacity-[0.03] pointer-events-none" 
+                style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")` }}
+              />
+
+              {selectedDocs && selectedDocs[activeDocIndex] && (
+                <>
+                  <div className="p-6 border-b border-border/50 flex items-center justify-between relative z-10 bg-background/50 backdrop-blur-sm">
+                    <div className="flex items-center gap-4">
+                      <div className="flex flex-col">
+                        <div className="flex items-center gap-2 mb-0.5">
+                          <Hash className="size-3.5 text-primary/60" />
+                          <h4 className="font-bold text-sm tracking-tight">Document Context</h4>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Badge variant="outline" className="text-[10px] font-bold py-0 bg-primary/5 text-primary/80 border-primary/20">
+                            Source #{activeDocIndex + 1}
+                          </Badge>
+                          {selectedDocs[activeDocIndex].metadata?.source && (
+                            <span className="text-[11px] font-medium text-muted-foreground truncate max-w-[200px]">
+                              {selectedDocs[activeDocIndex].metadata.source}
+                            </span>
+                          )}
+                        </div>
+                      </div>
                     </div>
-                  )}
-                </motion.div>
-              ))}
+                    
+                    <div className="flex items-center gap-2 pr-8 sm:pr-0">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="h-8 px-3 text-[11px] font-bold rounded-lg gap-2 bg-background border-border/50 hover:bg-muted"
+                        onClick={() => copyToClipboard(selectedDocs[activeDocIndex].pageContent || selectedDocs[activeDocIndex].content)}
+                      >
+                        {copied ? <Check className="size-3.5 text-green-500" /> : <Copy className="size-3.5" />}
+                        {copied ? 'Copied' : 'Copy Text'}
+                      </Button>
+                    </div>
+                  </div>
+
+                  <div className="flex-1 relative z-10 overflow-y-auto custom-scrollbar">
+                    <div className="p-6 sm:p-10 max-w-3xl mx-auto">
+                      <div className="relative pb-10">
+                        <div className="absolute -left-4 sm:-left-6 top-0 bottom-0 w-px bg-gradient-to-b from-primary/30 via-primary/5 to-transparent" />
+                        <div className="text-sm sm:text-base text-foreground leading-relaxed font-medium whitespace-pre-wrap selection:bg-primary/20">
+                          {selectedDocs[activeDocIndex].pageContent || selectedDocs[activeDocIndex].content || "No snippet content available"}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </>
+              )}
             </div>
-          </ScrollArea>
+          </div>
         </DialogContent>
       </Dialog>
     </Card>
