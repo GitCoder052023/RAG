@@ -1,11 +1,12 @@
-import { Request, Response } from 'express';
+import { Request, Response, NextFunction } from 'express';
 import { loadPDF } from '@/services/pdf-service';
 import { addDocumentsToStore } from '@/services/vector-service';
+import { AppError } from '@/middlewares/error-handler';
 
-export const uploadPDF = async (req: Request, res: Response) => {
+export const uploadDocument = async (req: Request, res: Response, next: NextFunction) => {
   try {
     if (!req.file) {
-      return res.status(400).json({ error: 'No file uploaded' });
+      throw new AppError(400, 'No file uploaded');
     }
     const filePath = req.file.path;
 
@@ -15,9 +16,8 @@ export const uploadPDF = async (req: Request, res: Response) => {
     // Add to vector store
     await addDocumentsToStore(docs);
 
-    return res.json({ message: 'uploaded and processed' });
+    return res.json({ message: 'Document uploaded and successfully processed' });
   } catch (error) {
-    console.error('Error in uploadPDF controller:', error);
-    return res.status(500).json({ error: 'Internal server error' });
+    next(error);
   }
 };
