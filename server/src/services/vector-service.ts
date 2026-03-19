@@ -16,7 +16,7 @@ export const addDocumentsToStore = async (docs: Document[]) => {
   console.log(`All docs are added to vector store`);
 };
 
-export const getRetriever = async (k: number = 2) => {
+export const getRetriever = async (k: number = 5) => {
   const vectorStore = await getVectorStore();
   return vectorStore.asRetriever({ k });
 };

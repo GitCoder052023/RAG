@@ -6,7 +6,7 @@ export const generateChatStream = async (
   onDocs: (docs: any) => void,
   onChunk: (chunk: string) => void
 ) => {
-  const retriever = await getRetriever(2);
+  const retriever = await getRetriever();
   const relevantDocs = await retriever.invoke(userQuery);
 
   onDocs(relevantDocs);
