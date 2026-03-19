@@ -9,5 +9,8 @@ const router = Router();
 
 router.post('/api/docs/upload', upload.single('pdf'), uploadDocument as any);
 router.get('/api/chat/stream', validate(chatQuerySchema), streamChat as any);
+router.get('/api/health', (req, res) => {
+  res.status(200).json({ status: 'ok' });
+});
 
 export default router;

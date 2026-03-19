@@ -10,11 +10,15 @@ const app = express();
 const PORT = env.PORT;
 
 // Security Middleware
-app.use(helmet());
+app.use(helmet({
+  crossOriginResourcePolicy: { policy: "cross-origin" },
+  contentSecurityPolicy: false,
+}));
 app.use(cors({
-  origin: env.ALLOWED_ORIGINS,
-  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  origin: env.ALLOWED_ORIGINS.includes('*') ? '*' : env.ALLOWED_ORIGINS,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true,
 }));
 
 // Rate Limiting
@@ -35,4 +39,5 @@ app.use('/', router);
 // Error Handling Middleware (must be after routes)
 app.use(errorHandler as any);
 
-app.listen(PORT, () => console.log(`Server started on PORT:${PORT} in ${env.NODE_ENV} mode`));
+const server = app.listen(PORT, () => console.log(`Server started on PORT:${PORT} in ${env.NODE_ENV} mode`));
+server.timeout = 600000; // 10 minutes timeout for long processing tasks
