@@ -29,9 +29,12 @@ export const useChat = (hasUploadedFiles: boolean) => {
 
   const scrollToBottom = () => {
     if (scrollAreaRef.current) {
-      const scrollContainer = scrollAreaRef.current.querySelector('[data-radix-scroll-area-viewport]');
+      const scrollContainer = scrollAreaRef.current.querySelector('[data-slot="scroll-area-viewport"]');
       if (scrollContainer) {
-        scrollContainer.scrollTop = scrollContainer.scrollHeight;
+        // Use a small timeout to ensure the DOM has updated with the new content height
+        setTimeout(() => {
+          scrollContainer.scrollTop = scrollContainer.scrollHeight;
+        }, 0);
       }
     }
   };
