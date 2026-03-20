@@ -120,7 +120,7 @@ graph TB
    pnpm install
    cp .env.example .env
    # Add your credentials to .env (see below)
-   npm dev
+   pnpm dev
    ```
 
 3. **Setup Frontend**
