@@ -46,19 +46,55 @@ A modern, high-performance Retrieval-Augmented Generation (RAG) application that
 ## 🏗️ System Architecture
 
 ```mermaid
-graph TD
-    User[User] -->|Upload PDF| Client[Next.js Frontend]
-    Client -->|POST /api/docs/upload| Server[Express Backend]
-    Server -->|Parse & Chunk| LC[LangChain]
-    LC -->|Generate Embeddings| GeminiEmb[Gemini Embedding 001]
-    GeminiEmb -->|Store Vectors| Qdrant[(Qdrant Vector DB)]
-    
-    User -->|Ask Question| Client
-    Client -->|GET /api/chat/stream| Server
-    Server -->|Semantic Search| Qdrant
-    Qdrant -->|Retrieve Context| Server
-    Server -->|Context + Query| GeminiLLM[Gemini 3 Flash]
-    GeminiLLM -->|Stream Response| Client
+graph TB
+    %% Styling
+    classDef client fill:#2563eb,stroke:#1e40af,color:#fff,rx:10,ry:10;
+    classDef server fill:#059669,stroke:#065f46,color:#fff,rx:10,ry:10;
+    classDef ai fill:#7c3aed,stroke:#5b21b6,color:#fff,rx:10,ry:10;
+    classDef db fill:#d97706,stroke:#92400e,color:#fff,rx:10,ry:10;
+    classDef user fill:#475569,stroke:#1e293b,color:#fff,rx:20,ry:20;
+
+    User([👤 User]):::user
+
+    subgraph Frontend [Next.js Client]
+        UI[Chat Interface]:::client
+        UP[Upload Panel]:::client
+    end
+
+    subgraph Backend [Express Server]
+        API[API Gateway]:::server
+        SVC[RAG Service]:::server
+    end
+
+    subgraph AI_Engine [AI Core]
+        LC[LangChain]:::ai
+        GEM_L[Gemini 3 Flash]:::ai
+        GEM_E[Gemini Embedding]:::ai
+    end
+
+    subgraph Storage [Vector Store]
+        QD[(Qdrant DB)]:::db
+    end
+
+    %% Ingestion Flow
+    User -.->|Upload PDF| UP
+    UP -.->|Document| API
+    API -.->|Processing| LC
+    LC -.->|Embed| GEM_E
+    GEM_E -.->|Index| QD
+
+    %% Inference Flow
+    User ==>|Query| UI
+    UI ==>|Stream| API
+    API ==>|Search| SVC
+    SVC ==>|Retrieve| QD
+    QD ==>|Context| SVC
+    SVC ==>|Prompt| GEM_L
+    GEM_L ==>|Response| UI
+
+    %% Aesthetics
+    linkStyle 0,1,2,3,4 stroke:#f59e0b,stroke-width:2px,stroke-dasharray: 5 5;
+    linkStyle 5,6,7,8,9,10,11 stroke:#2563eb,stroke-width:2.5px;
 ```
 
 ---
