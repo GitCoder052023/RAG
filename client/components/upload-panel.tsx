@@ -10,41 +10,49 @@ import { toast } from 'sonner';
 import { uploadDocument } from '@/lib/api';
 
 interface UploadPanelProps {
-  onUploadSuccess: (file: File) => void;
+  onUploadSuccess: (files: File[]) => void;
   uploadedFiles: File[];
 }
 
 export const UploadPanel: React.FC<UploadPanelProps> = ({ onUploadSuccess, uploadedFiles }) => {
   const [isUploading, setIsUploading] = useState(false);
-  const [file, setFile] = useState<File | null>(null);
+  const [pendingFiles, setPendingFiles] = useState<File[]>([]);
 
   const onDrop = useCallback((acceptedFiles: File[]) => {
     if (acceptedFiles.length > 0) {
-      setFile(acceptedFiles[0]);
+      setPendingFiles(prev => [...prev, ...acceptedFiles]);
     }
   }, []);
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
     accept: { 'application/pdf': ['.pdf'] },
-    multiple: false,
+    multiple: true,
   });
 
   const handleUpload = async () => {
-    if (!file) return;
+    if (pendingFiles.length === 0) return;
 
     setIsUploading(true);
     try {
-      await uploadDocument(file);
-      toast.success('File uploaded successfully!');
-      onUploadSuccess(file);
-      setFile(null);
+      // Sequential uploads for better reliability and avoiding server-side race conditions
+      for (const file of pendingFiles) {
+        await uploadDocument(file);
+      }
+      
+      toast.success(`${pendingFiles.length} file(s) uploaded successfully!`);
+      onUploadSuccess(pendingFiles);
+      setPendingFiles([]);
     } catch (error) {
       console.error(error);
-      toast.error('Upload failed. Please try again.');
+      toast.error('Upload failed. Some files may not have been processed.');
     } finally {
       setIsUploading(false);
     }
+  };
+
+  const removePendingFile = (index: number) => {
+    setPendingFiles(prev => prev.filter((_, i) => i !== index));
   };
 
   const formatFileSize = (bytes: number) => {
@@ -97,37 +105,42 @@ export const UploadPanel: React.FC<UploadPanelProps> = ({ onUploadSuccess, uploa
           </div>
 
           <AnimatePresence>
-            {file && (
-              <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.95 }}
-                className="relative p-3 rounded-lg bg-primary/5 border border-primary/20 flex items-center gap-3 overflow-hidden"
-              >
-                <div className="size-8 rounded bg-primary/10 flex items-center justify-center text-primary">
-                  <FileText className="size-5" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="font-medium text-xs truncate">{file.name}</p>
-                  <p className="text-[10px] text-muted-foreground">{formatFileSize(file.size)}</p>
-                </div>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="size-7 rounded-full hover:bg-destructive/10 hover:text-destructive"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setFile(null);
-                  }}
-                >
-                  <X className="size-3.5" />
-                </Button>
-              </motion.div>
+            {pendingFiles.length > 0 && (
+              <div className="flex flex-col gap-2 max-h-[200px] overflow-y-auto custom-scrollbar pr-1">
+                {pendingFiles.map((file, index) => (
+                  <motion.div
+                    key={`${file.name}-${index}`}
+                    initial={{ opacity: 0, x: -10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, scale: 0.95 }}
+                    className="relative p-3 rounded-lg bg-primary/5 border border-primary/20 flex items-center gap-3 overflow-hidden"
+                  >
+                    <div className="size-8 rounded bg-primary/10 flex items-center justify-center text-primary">
+                      <FileText className="size-5" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium text-xs truncate">{file.name}</p>
+                      <p className="text-[10px] text-muted-foreground">{formatFileSize(file.size)}</p>
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="size-7 rounded-full hover:bg-destructive/10 hover:text-destructive"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        removePendingFile(index);
+                      }}
+                    >
+                      <X className="size-3.5" />
+                    </Button>
+                  </motion.div>
+                ))}
+              </div>
             )}
           </AnimatePresence>
 
           <Button
-            disabled={!file || isUploading}
+            disabled={pendingFiles.length === 0 || isUploading}
             onClick={handleUpload}
             className="w-full py-5 text-sm font-semibold group relative overflow-hidden"
           >
@@ -135,7 +148,7 @@ export const UploadPanel: React.FC<UploadPanelProps> = ({ onUploadSuccess, uploa
               <Loader2 className="size-4 animate-spin" />
             ) : (
               <>
-                Process Document
+                Process {pendingFiles.length > 0 ? `${pendingFiles.length} Documents` : 'Documents'}
                 <motion.div
                   className="absolute inset-0 bg-primary-foreground/10 translate-x-[-100%]"
                   whileHover={{ translateX: '100%' }}

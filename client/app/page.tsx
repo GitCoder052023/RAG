@@ -12,8 +12,8 @@ export default function Home() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
 
-  const onUploadSuccess = (file: File) => {
-    setUploadedFiles((prev) => [...prev, file]);
+  const onUploadSuccess = (files: File[]) => {
+    setUploadedFiles((prev) => [...prev, ...files]);
   };
 
   return (

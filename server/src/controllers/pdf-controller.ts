@@ -16,7 +16,10 @@ export const uploadDocument = async (req: Request, res: Response, next: NextFunc
     // Add to vector store
     await addDocumentsToStore(docs);
 
-    return res.json({ message: 'Document uploaded and successfully processed' });
+    return res.json({ 
+      message: 'Document uploaded and successfully processed',
+      filename: req.file.originalname 
+    });
   } catch (error) {
     next(error);
   }
